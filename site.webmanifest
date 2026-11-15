@@ -1,0 +1,13 @@
+{
+  "name": "Daisy Daisy — Cards & Gifts, Llanishen",
+  "short_name": "Daisy Daisy",
+  "description": "Independent card and gift shop at 17 Station Road, Llanishen, Cardiff.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "browser",
+  "background_color": "#fdf6ef",
+  "theme_color": "#fdf6ef",
+  "icons": [
+    { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
