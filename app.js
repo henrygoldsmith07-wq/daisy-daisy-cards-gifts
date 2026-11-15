@@ -1,205 +1,31 @@
-
-(function () {
-  'use strict';
-
-  var SHOP = {
-    name: 'Daisy Daisy',
-    email: 'rebekahellaltd@gmail.com',
-    phone: '029 2075 6793',
-    hoursConfirmed: false
-  };
-  var KEY = 'dd-shortlist-v1';
-  var memoryList = [];
-  var storageWorks = true;
-  var DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-
-  /* ---------- open status ---------- */
-  function fmt(mins) {
-    var h = Math.floor(mins / 60), m = mins % 60, ampm = h >= 12 ? 'pm' : 'am', h12 = h % 12 || 12;
-    return h12 + (m ? ':' + (m < 10 ? '0' + m : m) : '') + ampm;
-  }
-  function renderStatus() {
-    var el = document.getElementById('status'), txt = document.getElementById('status-text');
-    if (!el || !txt) return;
-    el.className = 'status';
-    txt.textContent = 'Mon–Fri 9am–5pm · Sat 9am–4pm · Sun closed';
-  }
-  function markToday() {
-    var rows = document.querySelectorAll('#hours-table tr[data-day]');
-    var d = new Date().getDay();
-    for (var i = 0; i < rows.length; i++) {
-      if (Number(rows[i].getAttribute('data-day')) === d) rows[i].classList.add('today');
-    }
-  }
-
-  /* ---------- shortlist store ---------- */
-  function load() {
-    if (!storageWorks) return memoryList;
-    try { var raw=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(raw)?raw.filter(function(x){return x&&typeof x.name==='string'&&typeof x.group==='string';}).slice(0,20):[];}catch(e){storageWorks=false;return memoryList;}
-  }
-  function save(list) {
-    document.getElementById('request-result').replaceChildren();
-    memoryList = list;
-    try { localStorage.setItem(KEY, JSON.stringify(list)); } catch (e) { storageWorks=false; }
-    renderBasket();
-  }
-  function add(name, group) {
-    var list = load();
-    for (var i = 0; i < list.length; i++) if (list[i].name === name) return;
-    list.push({ name: name, group: group });
-    save(list);
-  }
-  function remove(name) { save(load().filter(function (x) { return x.name !== name; })); }
-
-  function renderBasket() {
-    var list = load();
-    document.querySelectorAll('[data-add]').forEach(function(btn){var chosen=list.some(function(x){return x.name===btn.dataset.add;});btn.textContent=chosen?'On your shortlist':'Add to shortlist';btn.classList.toggle('added',chosen);});
-    var count = document.getElementById('basket-count');
-    var sr = document.getElementById('basket-sr');
-    if (count) { count.textContent = String(list.length); count.classList.toggle('on', list.length > 0); }
-    if (sr) sr.textContent = list.length === 1 ? '1 item on your shortlist' : list.length + ' items on your shortlist';
-
-    var box = document.getElementById('basket-list');
-    if (!box) return;
-    if (!list.length) {
-      box.innerHTML = '<p class="empty">Nothing on the list yet.<br>Tap “Add to shortlist” on anything that sounds right.</p>';
-      document.getElementById('send-btn').disabled = true;
-      return;
-    }
-    document.getElementById('send-btn').disabled = false;
-    var html = '';
-    for (var i = 0; i < list.length; i++) {
-      html += '<div class="basket-row"><div><div class="br-name">' + esc(list[i].name) +
-        '</div><div class="br-meta">' + esc(list[i].group || '') + ' · availability to confirm</div></div>' +
-        '<button class="remove" type="button" data-remove="' + esc(list[i].name) + '">Remove</button></div>';
-    }
-    box.innerHTML = html;
-  }
-  function esc(s) {
-    return String(s).replace(/[&<>"']/g, function (c) {
-      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
-    });
-  }
-
-  /* ---------- drawer ---------- */
-  var drawer = document.getElementById('drawer');
-  var backdrop = document.getElementById('backdrop');
-  var lastFocus = null;
-  function openDrawer() {
-    lastFocus = document.activeElement;
-    drawer.hidden = false; backdrop.hidden = false;
-    document.body.style.overflow='hidden';
-    document.querySelectorAll('main,header,footer,nav').forEach(function(el){el.inert=true;});
-    requestAnimationFrame(function () { drawer.classList.add('open'); backdrop.classList.add('open'); });
-    document.getElementById('drawer-close').focus();
-    document.addEventListener('keydown', onKey);
-  }
-  function closeDrawer() {
-    drawer.classList.remove('open'); backdrop.classList.remove('open');
-    document.body.style.overflow='';
-    document.querySelectorAll('main,header,footer,nav').forEach(function(el){el.inert=false;});
-    document.removeEventListener('keydown', onKey);
-    setTimeout(function () { drawer.hidden = true; backdrop.hidden = true; }, 260);
-    if (lastFocus && lastFocus.focus) lastFocus.focus();
-  }
-  function onKey(e) {
-    if (e.key === 'Escape') { closeDrawer(); return; }
-    if (e.key !== 'Tab') return;
-    var f = drawer.querySelectorAll('a[href], button:not([disabled]), input, textarea, select');
-    if (!f.length) return;
-    var first = f[0], last = f[f.length - 1];
-    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-  }
-
-  /* ---------- request form ---------- */
-  function makeRef() {
-    var d = new Date();
-    var stamp = String(d.getFullYear()).slice(2) + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
-    var rnd = Math.random().toString(36).slice(2, 5).toUpperCase();
-    return 'DD-' + stamp + '-' + rnd;
-  }
-
-  function onSubmit(e) {
-    e.preventDefault();
-    var err = document.getElementById('req-err');
-    err.hidden = true;
-    if (document.getElementById('req-hp').value) return;
-
-    var list = load();
-    if (!list.length) { err.textContent = 'Add something to your shortlist first.'; err.hidden = false; return; }
-
-    var name = document.getElementById('req-name').value.trim();
-    var contact = document.getElementById('req-contact').value.trim();
-    var note = document.getElementById('req-note').value.trim();
-    var fulfil = document.querySelector('input[name="fulfil"]:checked').value;
-
-    if (name.length < 2) { err.textContent = 'Please give a name the shop can ask for.'; err.hidden = false; return; }
-    if (!(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact) || (/^[+()0-9 \-]{7,25}$/.test(contact) && contact.replace(/\D/g,'').length >= 7))) { err.textContent = 'Please add a phone number or email address.'; err.hidden = false; return; }
-
-    var ref = makeRef();
-    var lines = list.map(function (x) { return '- ' + x.name; }).join('\n');
-    var body = 'Hello Daisy Daisy,\n\nI would like to order the following:\n\n' + lines +
-      '\n\nHow I would like to get it: ' + fulfil +
-      '\nMy name: ' + name +
-      '\nBest contact: ' + contact +
-      (note ? '\nNotes: ' + note : '') +
-      '\n\nReference: ' + ref +
-      '\n\nPlease let me know what you have in stock, the price, and when I can collect.\n\nThank you.';
-    var mailto = 'mailto:' + SHOP.email + '?subject=' + encodeURIComponent('Shortlist ' + ref + ' — ' + name) + '&body=' + encodeURIComponent(body);
-
-    var box = document.getElementById('request-result');
-    box.innerHTML = '<div class="confirmed"><strong>Request ready — ' + esc(ref) + '</strong>' +
-      '<p style="font-size:.89rem;margin:.3rem 0 .7rem">Send it to the shop and they will come back with stock, price and a pickup time.</p>' +
-      '<p style="margin:0 0 .7rem"><span class="ref-code">' + esc(ref) + '</span></p>' +
-      '<a class="btn btn-primary btn-block" href="' + esc(mailto) + '">Open the email to Daisy Daisy</a>' +
-      '<button class="btn btn-ghost btn-block" type="button" id="copy-ref" style="margin-top:.5rem">Copy full request</button>' +
-      '<p style="font-size:.78rem;color:var(--ink-soft);margin:.7rem 0 0">No email app? Copy the full request and call ' + SHOP.phone + ' to read out your request.</p></div>';
-
-    var copyBtn = document.getElementById('copy-ref');
-    if (copyBtn) copyBtn.addEventListener('click', function () {
-      if (!navigator.clipboard) return;
-      navigator.clipboard.writeText(body).then(function () { copyBtn.textContent = 'Copied'; }, function () {});
-    });
-    var full=document.createElement('pre');full.textContent=body;full.style.cssText='white-space:pre-wrap;font:inherit;font-size:.85rem;overflow-wrap:anywhere';box.appendChild(full);
-    box.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-  }
-
-  /* ---------- wire up ---------- */
-  document.addEventListener('click', function (e) {
-    var t = e.target.closest ? e.target.closest('[data-add]') : null;
-    if (t) {
-      add(t.getAttribute('data-add'), t.getAttribute('data-group'));
-      t.textContent = 'On your shortlist';
-      t.classList.add('added');
-      openDrawer();
-      return;
-    }
-    var r = e.target.closest ? e.target.closest('[data-remove]') : null;
-    if (r) { remove(r.getAttribute('data-remove')); return; }
-    if (e.target.closest && e.target.closest('[data-open-drawer]')) { openDrawer(); return; }
-    var chip = e.target.closest ? e.target.closest('.chip') : null;
-    if (chip) {
-      var f = chip.getAttribute('data-filter');
-      var chips = document.querySelectorAll('.chip');
-      for (var i = 0; i < chips.length; i++) chips[i].setAttribute('aria-pressed', String(chips[i] === chip));
-      var items = document.querySelectorAll('#ranges-grid .item');
-      for (var j = 0; j < items.length; j++) {
-        var tags = items[j].getAttribute('data-tags') || '';
-        items[j].hidden = f !== 'all' && tags.indexOf(f) === -1;
-      }
-    }
-  });
-
-  var openBtn = document.getElementById('basket-open');
-  if (openBtn) openBtn.addEventListener('click', openDrawer);
-  document.getElementById('drawer-close').addEventListener('click', closeDrawer);
-  backdrop.addEventListener('click', closeDrawer);
-  document.getElementById('request-form').addEventListener('submit', onSubmit);
-
-  var y = document.getElementById('year');
-  if (y) y.textContent = String(new Date().getFullYear());
-
-  renderStatus(); markToday(); renderBasket();
-  setInterval(renderStatus, 60000);
+(function(){'use strict';
+const KEY='dd-shortlist-v1',drawer=document.querySelector('#drawer'),backdrop=document.querySelector('#backdrop'),result=document.querySelector('#request-result'),form=document.querySelector('#request-form');
+let memory=[],storageWorks=true,returnFocus=null,hideTimer;
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function load(){if(!storageWorks)return memory;try{const list=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(list)?list.filter(x=>x&&typeof x.name==='string'&&typeof x.group==='string').slice(0,20).map(x=>({...x,qty:Math.min(20,Math.max(1,Math.floor(Number(x.qty)||1)))})):[];}catch{storageWorks=false;return memory;}}
+function save(list){memory=list;try{localStorage.setItem(KEY,JSON.stringify(list));}catch{storageWorks=false;}result.replaceChildren();render();}
+function render(){const list=load(),total=list.reduce((n,x)=>n+x.qty,0),count=document.querySelector('#basket-count'),sr=document.querySelector('#basket-sr');count.textContent=String(total);count.classList.toggle('on',!!total);
+if(total){count.classList.remove('pop');void count.offsetWidth;count.classList.add('pop');}sr.setAttribute('aria-live','polite');sr.setAttribute('aria-atomic','true');sr.textContent=total+' '+(total===1?'item':'items')+' across '+list.length+' '+(list.length===1?'enquiry theme':'enquiry themes');document.querySelector('#send-btn').disabled=!total;
+document.querySelectorAll('[data-add]').forEach(b=>{const chosen=list.find(x=>x.name===b.dataset.add);b.textContent=chosen?'Shortlisted · add another':b.id==='rack-add'?'Add this occasion to my shortlist':'Add to shortlist';b.classList.toggle('added',!!chosen);});
+document.querySelector('#basket-list').innerHTML=list.length?list.map(x=>'<div class="basket-row"><div><div class="br-name">'+esc(x.name)+'</div><div class="br-meta">Design, stock and price to confirm</div><div class="quantity-control"><button type="button" data-qty="-1" data-name="'+esc(x.name)+'" aria-label="Decrease quantity for '+esc(x.name)+'" '+(x.qty===1?'disabled':'')+'>−</button><output aria-label="Quantity">'+x.qty+'</output><button type="button" data-qty="1" data-name="'+esc(x.name)+'" aria-label="Increase quantity for '+esc(x.name)+'" '+(x.qty===20?'disabled':'')+'>+</button></div></div><button class="remove" type="button" data-remove="'+esc(x.name)+'">Remove</button></div>').join(''):'<p class="empty">Your shortlist is empty.<br>Choose an occasion or gift enquiry to get started.</p>';
+}
+function background(inert){document.querySelectorAll('main,header,footer,nav').forEach(el=>el.inert=inert);document.body.style.overflow=inert?'hidden':'';}
+function open(){clearTimeout(hideTimer);if(drawer.hidden)returnFocus=document.activeElement;drawer.hidden=false;backdrop.hidden=false;background(true);requestAnimationFrame(()=>{drawer.classList.add('open');backdrop.classList.add('open');});document.querySelector('#drawer-close').focus();}
+function close(){drawer.classList.remove('open');backdrop.classList.remove('open');background(false);hideTimer=setTimeout(()=>{drawer.hidden=true;backdrop.hidden=true;},matchMedia('(prefers-reduced-motion:reduce)').matches?0:260);returnFocus?.focus();}
+document.addEventListener('keydown',e=>{if(drawer.hidden)return;if(e.key==='Escape'){e.preventDefault();close();}if(e.key==='Tab'){const items=[...drawer.querySelectorAll('a[href],button:not([disabled]),input:not([type=hidden]),textarea,select')].filter(x=>x.getClientRects().length);const first=items[0],last=items.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}});
+document.addEventListener('click',e=>{const add=e.target.closest('[data-add]');if(add){let list=load(),item=list.find(x=>x.name===add.dataset.add);if(item)item.qty=Math.min(20,item.qty+1);else if(list.length<20)list.push({name:add.dataset.add,group:add.dataset.group||'Cards',qty:1});save(list);open();return;}
+const remove=e.target.closest('[data-remove]');if(remove){const activeName=remove.dataset.remove;save(load().filter(x=>x.name!==activeName));const next=drawer.querySelector('[data-remove]')||document.querySelector('#drawer-close');next.focus();return;}
+const qty=e.target.closest('[data-qty]');if(qty){const name=qty.dataset.name,delta=Number(qty.dataset.qty),list=load(),item=list.find(x=>x.name===name);if(item)item.qty=Math.min(20,Math.max(1,item.qty+delta));save(list);const controls=[...drawer.querySelectorAll('[data-qty]')];(controls.find(x=>x.dataset.name===name&&Number(x.dataset.qty)===delta&&!x.disabled)||controls.find(x=>x.dataset.name===name&&!x.disabled)||document.querySelector('#drawer-close')).focus();return;}
+if(e.target.closest('[data-open-drawer]')){open();return;}
+const chip=e.target.closest('.chip');if(chip){const filter=chip.dataset.filter;document.querySelectorAll('.chip').forEach(c=>c.setAttribute('aria-pressed',String(c===chip)));document.querySelectorAll('#ranges-grid .item').forEach(item=>item.hidden=filter!=='all'&&!(item.dataset.tags||'').includes(filter));}
+});
+document.querySelector('#basket-open').addEventListener('click',open);document.querySelector('#drawer-close').addEventListener('click',close);backdrop.addEventListener('click',close);window.addEventListener('storage',e=>{if(e.key===KEY)render();});
+form.addEventListener('input',()=>{result.replaceChildren();document.querySelector('#req-err').hidden=true;form.querySelectorAll('[aria-invalid]').forEach(x=>x.removeAttribute('aria-invalid'));});
+form.addEventListener('submit',e=>{e.preventDefault();if(document.querySelector('#req-hp').value)return;const list=load(),error=document.querySelector('#req-err'),nameInput=document.querySelector('#req-name'),contactInput=document.querySelector('#req-contact'),name=nameInput.value.trim(),contact=contactInput.value.trim(),note=document.querySelector('#req-note').value.trim();
+const fail=(msg,field)=>{error.textContent=msg;error.hidden=false;if(field){field.setAttribute('aria-invalid','true');field.focus();}else error.focus();};error.hidden=true;
+if(!list.length)return fail('Add an occasion or gift enquiry first.');if(name.length<2)return fail('Enter the name the shop should use.',nameInput);if(!(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact)||(/^[+()0-9 \-]{7,25}$/.test(contact)&&contact.replace(/\D/g,'').length>=7)))return fail('Enter an email address or phone number so the shop can reply.',contactInput);
+const fulfil=document.querySelector('input[name=fulfil]:checked')?.value||'Collect from the shop',ref='DD-'+SiteUX.iso(SiteUX.london()).replaceAll('-','')+'-'+crypto.getRandomValues(new Uint32Array(1))[0].toString(36).slice(0,4).toUpperCase();
+const body='Hello Daisy Daisy,\n\nPlease could you help with these enquiries?\n\n'+list.map(x=>x.qty+' × '+x.name).join('\n')+'\n\nCollection or delivery enquiry: '+fulfil+'\nName: '+name+'\nReply to: '+contact+(note?'\nNotes: '+note:'')+'\n\nReference: '+ref+'\n\nPlease confirm designs, availability, prices and arrangements before anything is reserved or purchased.\n\nThank you.';
+const box=document.createElement('div');box.className='confirmed';const title=document.createElement('h3');title.textContent='Your enquiry is ready';const p=document.createElement('p');p.textContent='Nothing has been sent yet. Open your email app to send this to the shop, or copy it before you call.';const pre=document.createElement('pre');pre.className='request-copy';pre.tabIndex=0;pre.textContent=body;const send=document.createElement('a');send.className='btn btn-primary btn-block';send.href='mailto:rebekahellaltd@gmail.com?subject='+encodeURIComponent('Card and gift enquiry '+ref)+'&body='+encodeURIComponent(body);send.textContent='Open email to Daisy Daisy';const copy=document.createElement('button');copy.type='button';copy.className='btn btn-ghost btn-block';copy.textContent='Copy full enquiry';copy.addEventListener('click',async()=>{copy.textContent=await SiteUX.copy(body)?'Enquiry copied':'Select the enquiry text below to copy';});box.append(title,p,send,copy,pre);result.replaceChildren(box);result.tabIndex=-1;result.focus();});
+const status=document.querySelector('#status-text');if(status)status.textContent='Mon–Fri 9am–5pm · Sat 9am–4pm · Sun closed';const year=document.querySelector('#year');if(year)year.textContent=String(new Date().getFullYear());render();
 })();
