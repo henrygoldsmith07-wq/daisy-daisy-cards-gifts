@@ -25,3 +25,11 @@ Scroll-reveal section entrances (IntersectionObserver, reduced-motion safe), poi
 - Added a real-photo gallery (Fresh flowers & gift styling) using free Unsplash images, self-hosted and optimised under `assets/photos/`. Photos are labelled illustrative styling, not a live inventory.
 - Photo sources (Unsplash, free licence): bouquet-2 `photo-1496062031456-07b8f162a322`, tulips `photo-1506197603052-3cc9c3a201bd`, bouquet-1 `photo-1490750967868-88aa4486c946`, single-rose `photo-1518895949257-7621c3c786d7`, gift-bouquet `photo-1519225421980-715cb0215aed`, floral-pink `photo-1466692476868-aef1dfb1e735`.
 - Brand vibrancy pass: richer rose/gold/sage palette, gradient headline and section headings, gradient primary buttons, glowing hero halo (blur, pointer-events none), selected-card emphasis, and a responsive 3/2 + 3/4 photo grid. All motion/depth respects `prefers-reduced-motion`; no external requests; strict CSP unchanged; one h1 retained.
+
+## Four additional flower photos - 15 November 2026
+- Owner-supplied Unsplash photographs optimised into `assets/photos/`: `blossom-white.jpg` (jei-lee, yRXuXvy4sQ4, 1200x1800), `garden-colour.jpg` (lanfeng, oi9iEi79sqQ, 1100x1512), `blue-stems.jpg` (ryunosuke-kikuno, cFxUZ7UAf-c, 1200x1803), `garden-roses.jpg` (rikonavt, oEWdQsbRVZk, 1100x1956).
+- Gallery rebuilt as a masonry column flow so portrait and landscape frames keep their true aspect ratios: 3 columns on desktop, 2 under 980px, 1 under 520px. Every image stays self-hosted, lazy-loaded with explicit width and height, and the copy still labels the photos as illustrative styling rather than stock.
+- Strict CSP unchanged, no third-party image hosts, one h1 retained.
+
+## Three more owner-supplied photos - 15 November 2026
+- `bee-bloom-1.jpg` (Ankith Choudhary, AbBZKCPzLQQ, 1200x1792), `bee-bloom-2.jpg` (Christos Gavriel, xg2DXbP8qao, 1200x2536), `bee-bloom-3.jpg` (Dmitry Grigoriev, yxXpjF-RrnA, 1600x1068). All three are Unsplash photographs of bees on yellow flowers, captioned truthfully ("Garden visitors", "Bees at work", "Pollinators welcome") — not presented as stock bouquets. Gallery now holds 13 photos.
