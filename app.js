@@ -9,6 +9,8 @@
     hoursConfirmed: false
   };
   var KEY = 'dd-shortlist-v1';
+  var memoryList = [];
+  var storageWorks = true;
   var DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
   /* ---------- open status ---------- */
@@ -20,7 +22,7 @@
     var el = document.getElementById('status'), txt = document.getElementById('status-text');
     if (!el || !txt) return;
     el.className = 'status';
-    txt.textContent = 'Listed opening: Mon–Sat from 9am · call for today’s hours';
+    txt.textContent = 'Mon–Fri 9am–5pm · Sat 9am–4pm · Sun closed';
   }
   function markToday() {
     var rows = document.querySelectorAll('#hours-table tr[data-day]');
@@ -32,11 +34,13 @@
 
   /* ---------- shortlist store ---------- */
   function load() {
-    try { var raw=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(raw)?raw.filter(function(x){return x&&typeof x.name==='string'&&typeof x.group==='string';}).slice(0,20):[];}catch(e){return [];}
+    if (!storageWorks) return memoryList;
+    try { var raw=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(raw)?raw.filter(function(x){return x&&typeof x.name==='string'&&typeof x.group==='string';}).slice(0,20):[];}catch(e){storageWorks=false;return memoryList;}
   }
   function save(list) {
     document.getElementById('request-result').replaceChildren();
-    try { localStorage.setItem(KEY, JSON.stringify(list)); } catch (e) {}
+    memoryList = list;
+    try { localStorage.setItem(KEY, JSON.stringify(list)); } catch (e) { storageWorks=false; }
     renderBasket();
   }
   function add(name, group) {
@@ -131,7 +135,7 @@
     var fulfil = document.querySelector('input[name="fulfil"]:checked').value;
 
     if (name.length < 2) { err.textContent = 'Please give a name the shop can ask for.'; err.hidden = false; return; }
-    if (contact.length < 5) { err.textContent = 'Please add a phone number or email address.'; err.hidden = false; return; }
+    if (!(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact) || (/^[+()0-9 \-]{7,25}$/.test(contact) && contact.replace(/\D/g,'').length >= 7))) { err.textContent = 'Please add a phone number or email address.'; err.hidden = false; return; }
 
     var ref = makeRef();
     var lines = list.map(function (x) { return '- ' + x.name; }).join('\n');
