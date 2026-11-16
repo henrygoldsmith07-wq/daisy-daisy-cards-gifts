@@ -191,7 +191,7 @@
     display: grid; place-items: center; font-weight: 800; font-size: .92rem; font-family: var(--serif);
     border: 1px solid var(--line);
   }
-  .steps h4 { font-family: var(--sans); font-size: .98rem; font-weight: 700; margin: 0 0 .15rem; }
+  .steps h3 { font-family: var(--sans); font-size: .98rem; font-weight: 700; margin: 0 0 .15rem; }
   .steps p { margin: 0; font-size: .9rem; color: var(--ink-soft); }
 
   /* ---------- hours + visit ---------- */
@@ -339,9 +339,8 @@ body{font-family:var(--body);font-size:16px;line-height:1.65}h1,h2,h3,.brand-nam
 .quantity-control button{width:44px;min-width:44px}.top{--accent:inherit}.studio .top{--accent:#e4c982}.studio .top nav a:hover{color:#e4c982}
 
 /* ---- final polish: motion ---- */
-html.js-reveal [data-reveal]{opacity:0;transform:translateY(16px);transition:opacity .55s cubic-bezier(.22,1,.36,1),transform .55s cubic-bezier(.22,1,.36,1)}
-html.js-reveal [data-reveal].is-in{opacity:1;transform:none}
-.hero-parallax{transform:translate3d(calc(var(--px,0)*1px),calc(var(--py,0)*1px),0);transition:transform .25s cubic-bezier(.22,1,.36,1)}
+/* Scroll-reveal and hero parallax were removed: no script ever activated
+   js-reveal/is-in or set --px/--py, so those rules were inert. */
 .basket-count.pop{animation:pop .3s cubic-bezier(.22,1,.36,1)}@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.28)}100%{transform:scale(1)}}
-@media(prefers-reduced-motion:reduce){html.js-reveal [data-reveal]{transition:none;opacity:1;transform:none}.basket-count.pop{animation:none}.hero-parallax{transition:none}}
+@media(prefers-reduced-motion:reduce){.basket-count.pop{animation:none}}
 

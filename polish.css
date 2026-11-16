@@ -1,0 +1,23 @@
+/* Scoped presentation rules. These replace inline style attributes so the
+   Content-Security-Policy can keep style-src self-only (no unsafe-inline). */
+
+/* Notes and small copy. */
+.range-note{font-size:.87rem;color:var(--ink-soft);margin-top:1.4rem}
+.hours-note{font-size:.85rem;color:var(--ink-soft);margin:1rem 0 0}
+.request-note{font-size:.78rem;color:var(--ink-soft);margin:.6rem 0 0;text-align:center}
+.optional-label{text-transform:none;letter-spacing:0;font-weight:400}
+
+/* Section and form spacing previously set inline. */
+#how,#questions{background:var(--paper-2)}
+#request-form{margin-top:1.2rem}
+
+/* Progressive enhancement: the shortlist needs JavaScript. */
+.noscript-note{padding:1rem 0}
+.noscript-note p{margin:0;font-size:.9rem;color:var(--ink-soft);background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:1rem}
+.noscript-note a{text-decoration:underline;text-underline-offset:3px}
+
+/* Long enquiries can exceed some mail clients' mailto limits. */
+.mailto-tip{font-size:.85rem;color:var(--ink-soft);margin-top:.6rem}
+
+/* Scroll lock while the shortlist drawer is open. */
+body.drawer-open{overflow:hidden}

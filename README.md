@@ -33,3 +33,14 @@ Scroll-reveal section entrances (IntersectionObserver, reduced-motion safe), poi
 
 ## Three more owner-supplied photos - 15 November 2026
 - `bee-bloom-1.jpg` (Ankith Choudhary, AbBZKCPzLQQ, 1200x1792), `bee-bloom-2.jpg` (Christos Gavriel, xg2DXbP8qao, 1200x2536), `bee-bloom-3.jpg` (Dmitry Grigoriev, yxXpjF-RrnA, 1600x1068). All three are Unsplash photographs of bees on yellow flowers, captioned truthfully ("Garden visitors", "Bees at work", "Pollinators welcome") — not presented as stock bouquets. Gallery now holds 13 photos.
+
+## 16 November 2026 — hardening and contract checks
+- Content-Security-Policy is now self-only for scripts and styles; the unused `data:` image permission and frame permission were removed, and no inline `style` attributes remain in `index.html`.
+- `experience.js` is no longer loaded; `app.js` carries the three helpers it used. Dead inline card gradients and inert scroll-reveal/parallax CSS were removed; sections render statically.
+- Accessibility: the three step titles are `h3` under the section `h2`, the drawer focus trap skips the honeypot field, occasion filtering announces a DOM-derived result count, invalid fields point at the error message via `aria-describedby`, and the enquiry form uses its own descriptive validation messages. Without JavaScript, a visible notice offers phone and email contact routes because the shortlist cannot work.
+- The photo viewer preserves each image's aspect ratio while changing photographs.
+- Persisted shortlist data is now sanitised by a small pure module (`shortlist.js`): rejects malformed or duplicate entries, bounds name lengths and caps quantities at 20. That module also composes the enquiry text, so the email body is directly testable; the refactor was verified byte-for-byte against the previous output.
+- Long enquiries show a tip advising the copy-to-clipboard route, because some mail clients truncate long `mailto:` URLs.
+- Added a zero-dependency local server: run `node serve.js` and open `http://localhost:8000` (set `PORT` to override).
+- Added zero-dependency contract checks in `tests/site.test.js`. Run with `node --test tests/site.test.js` (Node 18+; no install or build required).
+- Not verified this session in a live browser: rendering, responsive layout and multi-browser behaviour. Launch blockers (noindex and placeholder canonical URLs) remain unchanged pending owner approval.
