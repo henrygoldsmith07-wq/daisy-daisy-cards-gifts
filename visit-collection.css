@@ -9,3 +9,6 @@
 @media(max-width:767px){.jiro-experience{padding:64px 20px}.jx-intro{grid-template-columns:1fr;gap:24px}.jx-tabs{gap:8px;margin-top:32px}.jx-tabs button{font-size:13px;flex:1 0 40%;padding:8px}.jx-stage{padding:32px 0;min-height:280px;gap:8px;justify-content:start;overflow-x:auto;scroll-snap-type:x mandatory}.jx-ready .jx-book,.jx-book{width:160px;min-width:160px;flex:none;height:248px;margin:0;transform:rotateY(16deg) scale(.94);scroll-snap-align:center}.jx-ready .jx-book[aria-current=true]{transform:rotateY(0deg)}.jx-cover{padding:20px}.jx-cover strong{font-size:28px}.jx-caption h3{font-size:26px}.jx-guide{grid-template-columns:1fr;gap:32px;margin-top:64px}.jx-sticky{position:static}.jx-sticky h3{font-size:36px}.jx-sticky img{max-height:360px}.jx-card{padding:24px;min-height:280px}.jx-dialog-inner{grid-template-columns:1fr;padding:64px 24px 24px;gap:24px}.jx-dialog-inner img{height:200px;order:-1}}
 @media(prefers-reduced-motion:reduce){.jiro-experience *{transition:none!important;scroll-behavior:auto!important}.jx-ready .jx-book{transform:none!important}}
 .jiro-experience .jx-caption p,.jiro-experience .jx-help{max-width:none;margin-inline:auto;text-align:center}.jiro-experience [hidden]{display:none!important}
+
+.jiro-experience .jx-cover{isolation:isolate}
+
