@@ -19,5 +19,19 @@
 /* Long enquiries can exceed some mail clients' mailto limits. */
 .mailto-tip{font-size:.85rem;color:var(--ink-soft);margin-top:.6rem}
 
+/* Contact links need a comfortable touch target. */
+footer a,.visit-list a{display:inline-flex;align-items:center;min-height:44px}
+/* Inline phone link: 44px hit box with compensating margins so the
+   surrounding sentence keeps its original layout. */
+details.qa p a{display:inline-block;min-height:44px;padding:10px 6px;margin:-10px -6px;vertical-align:middle}
+
+/* Narrow-screen card rows: let the text column shrink below its content's
+   intrinsic minimum so long headings cannot push cards past the viewport. */
+.grid-cards .item-body,.split>*,.section-head{min-width:0;overflow-wrap:break-word}
+
+/* The drawer's author `display:flex` beats the UA [hidden] rule, so an
+   explicit rule is needed to keep the closed drawer out of layout. */
+.drawer[hidden]{display:none!important}
+
 /* Scroll lock while the shortlist drawer is open. */
 body.drawer-open{overflow:hidden}

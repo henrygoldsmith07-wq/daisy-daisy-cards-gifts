@@ -65,6 +65,13 @@ test('CSP is strict and self-only', () => {
   }
 });
 
+test('social metadata is complete for Open Graph and Twitter', () => {
+  for (const name of ['twitter:card', 'twitter:title', 'twitter:description', 'twitter:image',
+    'og:title', 'og:description', 'og:image', 'og:image:alt', 'og:locale', 'og:site_name']) {
+    assert.ok(new RegExp('(?:name|property)="' + name + '"').test(html), `missing ${name}`);
+  }
+});
+
 test('no inline style attributes and both fonts are preloaded', () => {
   assert.equal((html.match(/\sstyle="/g) || []).length, 0);
   for (const font of ['assets/dm-sans.woff2', 'assets/fraunces.woff2']) {
@@ -92,6 +99,8 @@ test('DOM contracts used by scripts are present in the markup', () => {
     assert.ok(css.includes('.' + cls), `stylesheet missing .${cls}`);
   }
   assert.ok(css.includes('.steps h3'), 'steps heading style not updated for h3');
+  assert.ok(!html.includes('data-reveal'), 'inert reveal markup should not return');
+  assert.ok(!css.includes('html.js-reveal') && !css.includes('.hero-parallax'), 'inert motion CSS should not return');
   assert.ok(read('app.js').includes("document.querySelector('#filter-status')"));
   assert.ok(html.includes('<form id="request-form" novalidate>'));
   assert.ok(html.includes('id="req-name" name="name" type="text" autocomplete="name" aria-describedby="req-err"'));
@@ -101,6 +110,13 @@ test('DOM contracts used by scripts are present in the markup', () => {
   assert.ok(/<noscript>[\s\S]*mailto:rebekahellaltd@gmail\.com[\s\S]*<\/noscript>/.test(html),
     'no-JS users need a contact route');
   assert.ok(css.includes('.noscript-note') && css.includes('.mailto-tip'));
+});
+
+test('local server protects paths and disables caching', () => {
+  const server = read('serve.js');
+  assert.ok(server.includes("rel === '/'") && server.includes("'/index.html'"));
+  assert.ok(server.includes('file.startsWith(root + path.sep)'));
+  assert.ok(server.includes("'Cache-Control': 'no-store'"));
 });
 
 test('filter count is derived from the DOM and long enquiries are flagged', () => {
@@ -129,6 +145,63 @@ test('gallery images are lazy, described, sized and use accurate srcset descript
     }
   }
   assert.ok(checked > 20);
+});
+
+test('small footer text meets WCAG AA contrast on the footer background', () => {
+  const srgb = c => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+  const lum = hex => {
+    const n = parseInt(hex.replace('#', ''), 16);
+    return 0.2126*srgb((n>>16)&255) + 0.7152*srgb((n>>8)&255) + 0.0722*srgb(n&255);
+  };
+  const ratio = (a, b) => {
+    const x = lum(a), y = lum(b);
+    return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+  };
+  const css = read('site.css');
+  const note = css.match(/\.foot-note\s*\{[^}]*color:\s*(#[0-9a-f]{6})/i)[1];
+  const footerBg = css.match(/footer\s*\{[^}]*background:\s*var\(--ink\)/i) ? '#323c39' : null;
+  assert.ok(footerBg, 'footer background token changed; recheck this test');
+  assert.ok(ratio(note, footerBg) >= 4.5, `footer note ${note} below 4.5:1 on ${footerBg}`);
+});
+
+test('closed drawer and narrow layouts cannot overflow the viewport', () => {
+  assert.ok(css.includes('.drawer[hidden]{display:none!important}'),
+    'author display:flex overrides [hidden] without an explicit rule');
+  assert.ok(css.includes('.grid-cards .item-body,.split>*,.section-head{min-width:0'),
+    'grid children need min-width:0 to shrink on narrow screens');
+  assert.ok(css.includes('minmax(min(232px, 100%), 1fr)'),
+    'auto-fill grid needs a shrinkable minimum');
+  assert.ok(css.includes('footer a,.visit-list a{display:inline-flex;align-items:center;min-height:44px}'));
+  assert.ok(css.includes('details.qa p a{display:inline-block;min-height:44px'));
+  for (const obsolete of ['.jiro-experience', '.card-stack', '.type-hero', '.display-card', '.coffee-grid', '.planning', '.hero-wordmark', '.hero{', '.label', ',select', 'select:focus', 'h4{']) {
+    assert.ok(!css.includes(obsolete), `obsolete shared CSS "${obsolete}" should be gone`);
+  }
+});
+
+test('shortlist names are unique and every filter matches at least one card', () => {
+  const names = [...html.matchAll(/data-add="([^"]+)"/g)].map(m => m[1]);
+  assert.ok(names.length > 0);
+  assert.equal(new Set(names).size, names.length, 'shortlist is keyed by name, so names must be unique');
+
+  const chips = [...html.matchAll(/class="chip"[^>]*data-filter="([^"]+)"/g)].map(m => m[1]);
+  assert.ok(chips.length > 0);
+  const tags = [...html.matchAll(/<article class="item" data-tags="([^"]+)"/g)].map(m => m[1]);
+  for (const filter of chips) {
+    if (filter === 'all') continue;
+    assert.ok(tags.some(t => t.split(/\s+/).includes(filter)), `chip "${filter}" matches no card`);
+  }
+});
+
+test('static ARIA references resolve (excluding ids created at runtime)', () => {
+  const ids = new Set([...html.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
+  // These are assigned by refinement.js when the gallery viewer is built.
+  const runtimeIds = new Set(['viewer-caption', 'inspiration-photos']);
+  const attrs = /aria-(?:labelledby|describedby|controls)="([^"]+)"/g;
+  for (const m of html.matchAll(attrs)) {
+    for (const ref of m[1].split(/\s+/)) {
+      assert.ok(ids.has(ref) || runtimeIds.has(ref), `ARIA reference #${ref} does not resolve`);
+    }
+  }
 });
 
 test('enquiry text preserves items, quantities, fulfilment and reference', () => {
@@ -186,6 +259,8 @@ test('shortlist sanitizer rejects malformed or duplicated stored data', () => {
 
 test('form validation contract', () => {
   const app = read('app.js');
+  assert.ok(read('refinement.js').includes("photo.setAttribute('width','1200')"));
+  assert.ok(read('refinement.js').includes("photo.alt=''"));
   assert.ok(app.includes('DDBuildEnquiry(list,fulfil,name,contact,note,ref)'));
   assert.ok(app.includes('name.length<2'));
   assert.ok(app.includes('Enter an email address or phone number'));

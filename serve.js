@@ -39,7 +39,11 @@ http.createServer((req, res) => {
       res.writeHead(404).end('Not found');
       return;
     }
-    res.writeHead(200, { 'Content-Type': types[path.extname(file)] || 'application/octet-stream' });
+    // Local review must not serve stale CSS/JS after an edit.
+    res.writeHead(200, {
+      'Content-Type': types[path.extname(file)] || 'application/octet-stream',
+      'Cache-Control': 'no-store',
+    });
     fs.createReadStream(file).pipe(res);
   });
 }).listen(port, () => console.log('Daisy Daisy on http://localhost:' + port));
