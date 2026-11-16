@@ -34,3 +34,15 @@ Ten photographs now carry the gallery, four of them added on the owner's instruc
 Decision: the gallery became a CSS multi-column masonry flow (3 / 2 / 1 columns) with `break-inside: avoid` on each figure. That keeps every photograph at its native aspect ratio, needs no JavaScript or layout measuring, and reflows cleanly for print at two columns. Hover lift was dropped inside the column flow because transforms during column balancing look unstable.
 
 Attribution: all thirteen images are Unsplash photographs under the Unsplash licence, self-hosted as JPEGs. They are styled as illustration of flower work, not as a live stock list, and the caption under the gallery says so. Three of the thirteen (added the same day on the owner's instruction) are macro shots of bees on yellow flowers; they are captioned truthfully as garden visitors rather than as stock bunches.
+
+## 16 November 2026 — Vasari × Jiro visit collection
+Applied Henry’s two supplied prompts as a scoped, additive vanilla HTML/CSS/JS section after existing content. Physical perspective covers, chapter controls, masked dialog reveal and sticky illustrated/photo column beside four numbered cards. Existing forms and content retained. Original licensed local fonts retained; no fictional film assets, PestGuard copy, invented claims, external font calls or React dependencies. Native dialog manages focus and Escape; normal anchor destinations work without JS; reduced motion disables animation. Responsive flow replaces the fixed scaled artboard to preserve readable type and zoom.
+Unslop by Damir Sokolovsky (https://heydamir.design/unslop), CC BY 4.0, guided restraint and material hierarchy.
+Reference: https://jiro.build/ and user-provided pasted-text.txt / pasted-text-2.txt.
+
+## 16 November 2026 — Vasari × Jiro visit collection
+Applied Henry’s two supplied prompts as a scoped, additive vanilla HTML/CSS/JS section after existing content. Physical perspective covers, chapter controls, masked dialog reveal and sticky illustrated/photo column beside four numbered cards. Existing forms and content retained. Original licensed local fonts retained; no fictional film assets, PestGuard copy, invented claims, external font calls or React dependencies. Native dialog manages focus and Escape; normal anchor destinations work without JS; reduced motion disables animation. Responsive flow replaces the fixed scaled artboard to preserve readable type and zoom.
+Unslop by Damir Sokolovsky (https://heydamir.design/unslop), CC BY 4.0, guided restraint and material hierarchy.
+Reference: https://jiro.build/ and user-provided pasted-text.txt / pasted-text-2.txt.
+
+Verified 16 November: structural validation, single h1, unique IDs, resolved anchors and assets, JavaScript/JSON-LD parsing. Browser tests: desktop 1920px and mobile 375px; chapter selection, arrow keys, native dialog open, Escape with focus restoration, action destinations, no document or dialog overflow; reduced-motion transition duration zero. Daisy truncated markup discovered and restored from ee23393, preserving all 13 photographs. No production payments, owner confirmation or formal accessibility audit performed.
